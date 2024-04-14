@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soil Moisture Line Chart with Table</title>
+    <!-- Load Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+
+        .btn {
+          background-color: DodgerBlue;
+          border: none;
+          color: white;
+          padding: 12px 16px;
+          font-size: 16px;
+          cursor: pointer;
+        }
+        
+        /* Darker background on mouse-over */
+        .btn:hover {
+          background-color: RoyalBlue;
+        }
+            </style>
+</head>
+<body>
+    <div style="display: flex;">
+        <a href="index.html"><button class="btn"><i class="fa fa-home"></i> Home</button></a>
+        <div id="soilMoistureLineChart" style="width: 600px; height: 400px;"></div>
+        <div id="soilMoistureTable" style="margin-left: 20px;"></div>
+    </div>
+
+    <script>
+        // Function to fetch data from ThingSpeak
+        function fetchData(url) {
+            return fetch(url)
+                .then(response => response.json())
+                .then(data => data.feeds)
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    return [];
+                });
+        }
+
+        // ThingSpeak API endpoint for soil moisture data (Field 5)
+        const channel_field5_url = "https://api.thingspeak.com/channels/2499963/fields/5.json?results=2000";
+
+        // Fetch soil moisture data
+        fetchData(channel_field5_url)
+            .then(feeds => {
+                // Extract timestamps and soil moisture values
+                const timestamps = feeds.map(feed => new Date(feed.created_at));
+                const soilMoistureValues = feeds.map(feed => parseFloat(feed.field5));
+
+                // Create a Plotly line chart for soil moisture data
+                const trace = {
+                    x: timestamps,
+                    y: soilMoistureValues,
+                    type: 'scatter', // Use 'scatter' for line graph
+                    mode: 'lines', // Connect points with lines
+                    line: {
+                        color: 'darkblue', // Adjust line color as needed
+                        width: 2 // Adjust line width as needed
+                    }
+                };
+
+                const layout = {
+                    title: 'Soil Moisture Over Time',
+                    xaxis: {
+                        title: 'Time'
+                    },
+                    yaxis: {
+                        title: 'Soil Moisture (%)' // Percentage scale
+                    }
+                };
+
+                Plotly.newPlot('soilMoistureLineChart', [trace], layout);
+
+                // Display soil moisture data in a table
+                const soilMoistureTableElement = document.getElementById('soilMoistureTable');
+                const tableHTML = `
+                    <table border="1">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Soil Moisture (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${feeds.map(feed => {
+                                if (!isNaN(parseFloat(feed.field5))) {
+                                    return `
+                                        <tr>
+                                            <td>${new Date(feed.created_at).toLocaleString()}</td>
+                                            <td>${parseFloat(feed.field5)}</td>
+                                        </tr>
+                                    `;
+                                } else {
+                                    return '';
+                                }
+                            }).join('')}
+                        </tbody>
+                    </table>
+                `;
+                soilMoistureTableElement.innerHTML = tableHTML;
+            });
+    </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThingSpeak Graph</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <canvas id="myChart" width="400" height="400"></canvas>
+
+    <script>
+        // Function to fetch data from ThingSpeak
+        function fetchData(url) {
+            return fetch(url)
+                .then(response => response.json())
+                .then(data => data.feeds)
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    return [];
+                });
+        }
+
+        // ThingSpeak API endpoint for field 1
+        const channel_field1_url = "https://api.thingspeak.com/channels/2499963/fields/1.json?results=2000";
+
+        // Fetch data for field 1
+        fetchData(channel_field1_url)
+            .then(feeds => {
+                const timestamps = feeds.map(feed => new Date(feed.created_at));
+                const values = feeds.map(feed => parseFloat(feed.field1));
+
+                const ctx = document.getElementById('myChart').getContext('2d');
+                const myChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: timestamps,
+                        datasets: [{
+                            label: 'Humidity (%)',
+                            data: values,
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            xAxes: [{
+                                type: 'time',
+                                time: {
+                                    unit: 'minute'
+                                }
+                            }]
+                        }
+                    }
+                });
+            });
+    </script>
+</body>
+</html>

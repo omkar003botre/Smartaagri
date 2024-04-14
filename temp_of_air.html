@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThingSpeak Air Temperature and Humidity Scatter Plot</title>
+    <!-- Load Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        /* CSS styles for the table */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f2f2f2;
+        }
+        .top-right {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .btn {
+  background-color: DodgerBlue;
+  border: none;
+  color: white;
+  padding: 12px 16px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* Darker background on mouse-over */
+.btn:hover {
+  background-color: RoyalBlue;
+}
+    </style>
+</head>
+<body>
+    <div style="display: flex;">
+        <a href="index.html"><button class="btn"><i class="fa fa-home"></i> Home</button></a>
+        <div id="myDiv" style="width: 600px; height: 600px;"></div>
+        
+        <div class="top-right">
+            <div id="averageData"></div>
+            <div id="forecast">Climate Forecasting: </div>
+        </div>
+    </div>
+    
+    <div id="temperatureTable" style="margin-top: 20px;"></div>
+    
+    <script>
+        // Function to fetch data from ThingSpeak
+        function fetchData(url) {
+            return fetch(url)
+                .then(response => response.json())
+                .then(data => data.feeds)
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    return [];
+                });
+        }
+
+        // ThingSpeak API endpoints
+        const channel_field2_url = "https://api.thingspeak.com/channels/2499963/fields/2.json?results=2000";
+        const channel_field1_url = "https://api.thingspeak.com/channels/2499963/fields/1.json?results=2000";
+
+        // Fetch data for temperature (field 2) and humidity (field 1)
+        Promise.all([fetchData(channel_field2_url), fetchData(channel_field1_url)])
+            .then(([temperatureFeeds, humidityFeeds]) => {
+                // Filter out NaN temperature and humidity values
+                const validTemperatureFeeds = temperatureFeeds.filter(feed => !isNaN(parseFloat(feed.field2)));
+                const validHumidityFeeds = humidityFeeds.filter(feed => !isNaN(parseFloat(feed.field1)));
+
+                // Extract values and timestamps for temperature
+                const temperatureTimestamps = validTemperatureFeeds.map(feed => new Date(feed.created_at));
+                const temperatureValues = validTemperatureFeeds.map(feed => parseFloat(feed.field2));
+
+                // Extract values and timestamps for humidity
+                const humidityTimestamps = validHumidityFeeds.map(feed => new Date(feed.created_at));
+                const humidityValues = validHumidityFeeds.map(feed => parseFloat(feed.field1));
+
+                // Calculate average temperature and humidity
+                const averageTemp = temperatureValues.reduce((acc, val) => acc + val, 0) / temperatureValues.length;
+                const averageHumidity = humidityValues.reduce((acc, val) => acc + val, 0) / humidityValues.length;
+
+                // Display average temperature and humidity
+                document.getElementById('averageData').innerHTML = `Average Temperature: ${averageTemp.toFixed(2)}°C, Average Humidity: ${averageHumidity.toFixed(2)}%`;
+
+                // Create a Plotly scatter plot for temperature
+                const temperatureTrace = {
+                    x: temperatureTimestamps,
+                    y: temperatureValues,
+                    mode: 'markers',
+                    marker: {
+                        color: 'blue', // Change marker color as needed
+                        size: 8 // Adjust marker size as needed
+                    },
+                    name: 'Temperature'
+                };
+
+                // Create a Plotly scatter plot for humidity
+                const humidityTrace = {
+                    x: humidityTimestamps,
+                    y: humidityValues,
+                    mode: 'markers',
+                    marker: {
+                        color: 'green', // Change marker color as needed
+                        size: 8 // Adjust marker size as needed
+                    },
+                    name: 'Humidity'
+                };
+
+                const layout = {
+                    title: 'Air Temperature and Humidity',
+                    xaxis: {
+                        title: 'Time'
+                    },
+                    yaxis: {
+                        title: 'Value'
+                    }
+                };
+
+                Plotly.newPlot('myDiv', [temperatureTrace, humidityTrace], layout);
+
+                // Create a table to display the temperature and humidity data
+                const table = document.createElement('table');
+                const thead = document.createElement('thead');
+                const tbody = document.createElement('tbody');
+
+                // Create table header
+                const headerRow = document.createElement('tr');
+                const timeHeader = document.createElement('th');
+                const tempHeader = document.createElement('th');
+                const humidityHeader = document.createElement('th');
+                timeHeader.textContent = 'Time';
+                tempHeader.textContent = 'Temperature (°C)';
+                humidityHeader.textContent = 'Humidity (%)';
+                headerRow.appendChild(timeHeader);
+                headerRow.appendChild(tempHeader);
+                headerRow.appendChild(humidityHeader);
+                thead.appendChild(headerRow);
+
+                // Create rows for each data point
+                const maxRows = Math.max(temperatureValues.length, humidityValues.length);
+                for (let i = 0; i < maxRows; i++) {
+                    const row = document.createElement('tr');
+                    const timeCell = document.createElement('td');
+                    const tempCell = document.createElement('td');
+                    const humidityCell = document.createElement('td');
+                    timeCell.textContent = temperatureTimestamps[i]?.toLocaleString() || ''; // Format time
+                    tempCell.textContent = temperatureValues[i]?.toFixed(2) + '°C' || '';
+                    humidityCell.textContent = humidityValues[i]?.toFixed(2) + '%' || '';
+                    row.appendChild(timeCell);
+                    row.appendChild(tempCell);
+                    row.appendChild(humidityCell);
+                    tbody.appendChild(row);
+                }
+
+                table.appendChild(thead);
+                table.appendChild(tbody);
+                document.getElementById('temperatureTable').appendChild(table);
+
+                // Dummy function for simulating climate forecasting
+                function getClimateForecast(temperature, humidity) {
+                    if (temperature > 30 && humidity > 50) {
+                        return "Hot and humid conditions with a chance of thunderstorms.";
+                    } else if (temperature > 25 && humidity > 60) {
+                        return "Warm and muggy with possible rain showers.";
+                    } else if (temperature < 10) {
+                        return "Cold with a chance of snow.";
+                    } else {
+                        return "Weather conditions are normal.";
+                    }
+                }
+
+                // Example temperature and humidity values (you should replace these with actual data)
+                const temperature = averageTemp; // Example temperature in Celsius
+                const humidity = averageHumidity; // Example humidity in percentage
+
+                // Get climate forecast based on temperature and humidity
+                const forecast = getClimateForecast(temperature, humidity);
+
+                // Display the forecast
+                document.getElementById('forecast').innerHTML += forecast;
+            });
+
+            
+    </script>
+</body>
+</html>

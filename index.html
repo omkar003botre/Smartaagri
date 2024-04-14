@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environmental Data Visualization</title>
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <style>
+        /* Basic styling */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            background-color: #333;
+            padding: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav ul li {
+            display: inline;
+            margin-right: 20px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Logo styling */
+        .logo img {
+            width: 150px; /* Adjust logo size as needed */
+            height: auto;
+        }
+
+        /* Slider container styling */
+        .swiper-container {
+            width: 100%;
+            height: 400px; /* Adjust the height as needed */
+            display: flex;
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            margin-top: 2%;
+        }
+
+        .swiper-slide img {
+            width: 100%;
+            height: 125%;
+            object-fit: cover; /* Ensure images cover the entire slide */
+        }
+
+        /* Centered paragraph styling */
+        .project-description {
+            text-align: center;
+            padding: 50px 0;
+        }
+
+        /* Mission and vision paragraph styling */
+        .mission-vision {
+            text-align: center;
+            padding: 50px 20px; /* Adjust padding as needed */
+            background-color: #f4f4f4;
+        }
+
+        .swiper-button-prev, .swiper-button-next {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="logo.png" alt="Logo">
+        </div>
+        <nav>
+            <ul>
+                <li><a href="temp_of_air.html">Humidity & Temperature of Air</a></li>
+                <li><a href="co2.html">CO2 Levels</a></li>
+                <li><a href="ph_of_water.html">pH of Water</a></li>
+                <li><a href="TDS_of_water.html">TDS of Water</a></li>
+                <li><a href="soil_moisture.html">Soil Moisture</a></li>
+                <li><a href="temp_of_soil.html">Soil Temperature</a></li>
+                <li><a href="summery.html">Summery Data</a></li>
+                <!-- Add links for other variables -->
+            </ul>
+        </nav>
+    </header>
+
+    <div class="swiper-container">
+        <div class="swiper-wrapper">
+            <div class="swiper-slide"><img src="soil.jpg" alt="Soil 1" width="800" height="600"></div>
+            <div class="swiper-slide"><img src="soil2.jpg" alt="Soil 2" width="800" height="600"></div>
+            <div class="swiper-slide"><img src="soil3.jpg" alt="Soil 3" width="800" height="600"></div>
+            <div class="swiper-slide"><img src="soil4.png" alt="Soil 4" width="800" height="600"></div>
+            <div class="swiper-slide"><img src="soil5.png" alt="Soil 5" width="800" height="600"></div>
+            <div class="swiper-slide"><img src="soil6.png" alt="Soil 5" width="800" height="600"></div>
+            <div class="swiper-slide"><img src="soil7.jpg" alt="Soil 5" width="800" height="600"></div>
+            <!-- Add more slides as needed -->
+        </div>
+        <!-- Add pagination and navigation buttons if desired -->
+        <div class="swiper-pagination"></div>
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-button-next"></div>
+    </div>
+
+    <div class="project-description">
+        <p>We are collecting environmental data to assist farmers in making informed decisions about their crops.</p>
+    </div>
+
+    <section class="mission-vision">
+        <h2>Our Mission and Vision</h2>
+        <p>Our mission is to revolutionize agriculture through innovative IoT technology, providing farmers with real-time soil and crop data to optimize yield, reduce resource wastage, and promote sustainable practices. We envision a world where every farmer has access to advanced IoT solutions for precision agriculture, empowering them to make data-driven decisions that lead to higher productivity, healthier crops, and a more sustainable future for generations to come.</p>
+    </section>
+
+    <!-- Swiper JS -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script>
+        var swiper = new Swiper('.swiper-container', {
+            loop: true,
+            autoplay: {
+                delay: 3000, // Autoplay delay in milliseconds
+                disableOnInteraction: false, // Disable autoplay when user interacts with swiper
+            },
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+        });
+    </script>
+</body>
+</html>

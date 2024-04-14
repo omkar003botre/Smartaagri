@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pH of Water Line Chart with Table</title>
+    <!-- Load Plotly.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <style>
+
+        .btn {
+          background-color: DodgerBlue;
+          border: none;
+          color: white;
+          padding: 12px 16px;
+          font-size: 16px;
+          cursor: pointer;
+        }
+        
+        /* Darker background on mouse-over */
+        .btn:hover {
+          background-color: RoyalBlue;
+        }
+            </style>
+</head>
+<body>
+    <div>
+        <a href="index.html"><button class="btn"><i class="fa fa-home"></i> Home</button></a>
+        <label for="searchDate">Search pH levels for date:</label>
+        <input type="date" id="searchDate">
+        <button onclick="searchPH()">Search</button>
+    </div>
+    <div style="display: flex; margin-top: 20px;">
+        <div id="phLineChart" style="width: 600px; height: 400px;"></div>
+        <div id="phTable" style="margin-left: 20px;"></div>
+    </div>
+
+    <script>
+        // Function to fetch data from ThingSpeak
+        function fetchData(url) {
+            return fetch(url)
+                .then(response => response.json())
+                .then(data => data.feeds)
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    return [];
+                });
+        }
+
+        // Function to search pH levels based on date
+        function searchPH() {
+            const searchDate = new Date(document.getElementById('searchDate').value);
+            const filteredFeeds = feeds.filter(feed => {
+                const feedDate = new Date(feed.created_at);
+                return feedDate.toDateString() === searchDate.toDateString();
+            });
+
+            // Extract timestamps and pH values for the filtered data
+            const timestamps = filteredFeeds.map(feed => new Date(feed.created_at));
+            const phValues = filteredFeeds.map(feed => parseFloat(feed.field6));
+
+            // Update the Plotly line chart for pH data
+            Plotly.restyle('phLineChart', 'x', [timestamps]);
+            Plotly.restyle('phLineChart', 'y', [phValues]);
+
+            // Display pH data in a table
+            const phTableElement = document.getElementById('phTable');
+            const tableHTML = `
+                <table border="1">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>pH Level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filteredFeeds.map(feed => {
+                            if (!isNaN(parseFloat(feed.field6))) {
+                                return `
+                                    <tr>
+                                        <td>${new Date(feed.created_at).toLocaleString()}</td>
+                                        <td>${parseFloat(feed.field6)}</td>
+                                    </tr>
+                                `;
+                            } else {
+                                return '';
+                            }
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+            phTableElement.innerHTML = tableHTML;
+        }
+
+        // ThingSpeak API endpoint for pH data (Field 6)
+        const channel_field6_url = "https://api.thingspeak.com/channels/2499963/fields/6.json?results=2000";
+
+        // Fetch pH data
+        let feeds;
+        fetchData(channel_field6_url)
+            .then(data => {
+                feeds = data;
+
+                // Extract timestamps and pH values
+                const timestamps = feeds.map(feed => new Date(feed.created_at));
+                const phValues = feeds.map(feed => parseFloat(feed.field6));
+
+                // Create a Plotly line chart for pH data
+                const trace = {
+                    x: timestamps,
+                    y: phValues,
+                    type: 'scatter', // Use 'scatter' for line graph
+                    mode: 'lines', // Connect points with lines
+                    line: {
+                        color: 'green', // Adjust line color as needed
+                        width: 2 // Adjust line width as needed
+                    }
+                };
+
+                const layout = {
+                    title: 'pH of Water Over Time',
+                    xaxis: {
+                        title: 'Time'
+                    },
+                    yaxis: {
+                        title: 'pH Level' // pH scale
+                    }
+                };
+
+                Plotly.newPlot('phLineChart', [trace], layout);
+
+                // Display pH data in a table
+                const phTableElement = document.getElementById('phTable');
+                const tableHTML = `
+                    <table border="1">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>pH Level</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${feeds.map(feed => {
+                                if (!isNaN(parseFloat(feed.field6))) {
+                                    return `
+                                        <tr>
+                                            <td>${new Date(feed.created_at).toLocaleString()}</td>
+                                            <td>${parseFloat(feed.field6)}</td>
+                                        </tr>
+                                    `;
+                                } else {
+                                    return '';
+                                }
+                            }).join('')}
+                        </tbody>
+                    </table>
+                `;
+                phTableElement.innerHTML = tableHTML;
+            });
+    </script>
+</body>
+</html>
